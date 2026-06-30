@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="1400" viewBox="0 0 1000 1400">
+  <defs>
+    <style type="text/css"><![CDATA[
+      .title { font: bold 20px sans-serif; fill: #222; }
+      .label { font: 14px sans-serif; fill: #222; }
+      .box { fill: #fff; stroke: #444; stroke-width:2; rx:8; }
+      .arrow { stroke: #111; stroke-width:2; fill: none; marker-end: url(#arrowhead); }
+      .lifeline { stroke: #999; stroke-dasharray:4 6; stroke-width:1.5; }
+      .note { font: 12px sans-serif; fill: #333; }
+    ]]></style>
+    <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#111" />
+    </marker>
+  </defs>
+
+  <!-- Header -->
+  <rect x="20" y="10" width="960" height="46" rx="6" fill="#f2f2f2" stroke="#ddd"/>
+  <text x="40" y="40" class="title">Diagrama de Autenticação — Componentes (acima) + Sequência de Login (embaixo)</text>
+
+  <!-- COMPONENT DIAGRAM (top) -->
+  <text x="40" y="90" class="label" font-weight="bold">Diagrama de componentes</text>
+
+  <!-- Mobile App -->
+  <rect x="60" y="110" width="220" height="120" class="box"/>
+  <text x="70" y="140" class="label">Mobile App</text>
+  <text x="70" y="160" class="note">React Native</text>
+  <text x="70" y="180" class="note">app/index.tsx</text>
+
+  <!-- AsyncStorage -->
+  <rect x="320" y="110" width="220" height="120" class="box"/>
+  <text x="330" y="140" class="label">AsyncStorage</text>
+  <text x="330" y="160" class="note">guard. local (usuario)</text>
+
+  <!-- Backend -->
+  <rect x="580" y="110" width="300" height="120" class="box"/>
+  <text x="590" y="140" class="label">Backend (Express)</text>
+  <text x="590" y="160" class="note">backend/index.js</text>
+  <text x="590" y="180" class="note">endpoints: /cadastro, /login, /bebes</text>
+
+  <!-- DB -->
+  <rect x="60" y="260" width="220" height="100" class="box"/>
+  <text x="70" y="295" class="label">SQLite</text>
+  <text x="70" y="315" class="note">database.sqlite</text>
+
+  <!-- Arrows between components -->
+  <!-- App -> Backend POST /login -->
+  <path d="M280 170 L320 170" class="arrow"/>
+  <text x="300" y="158" class="label" text-anchor="middle">POST /login {email, senha}</text>
+
+  <!-- Backend -> DB SELECT -->
+  <path d="M700 230 L280 320" class="arrow"/>
+  <text x="520" y="275" class="label" text-anchor="middle">SELECT usuarios WHERE email AND senha</text>
+
+  <!-- Backend -> App response -->
+  <path d="M700 170 L280 170" class="arrow" marker-end="url(#arrowhead)"/>
+  <text x="490" y="150" class="label" text-anchor="middle">200 { token, nome, email, id }</text>
+
+  <!-- App -> AsyncStorage -->
+  <path d="M200 230 L440 230" class="arrow"/>
+  <text x="320" y="220" class="label" text-anchor="middle">AsyncStorage.setItem('usuario', {...})</text>
+
+  <!-- App -> /bebes POST -->
+  <path d="M200 360 L700 360" class="arrow"/>
+  <text x="450" y="350" class="label" text-anchor="middle">POST /bebes { nome, ..., usuarioId }</text>
+
+  <!-- COMPONENTS FOOTER NOTE -->
+  <text x="40" y="390" class="note">Observações rápidas: senhas em texto simples; token gerado com Math.random(); token NÃO é persistido nem usado em Authorization header.</text>
+
+  <!-- Separator -->
+  <line x1="20" y1="420" x2="980" y2="420" stroke="#ccc" stroke-width="1"/>
+
+  <!-- SEQUENCE DIAGRAM (below) -->
+  <text x="40" y="460" class="label" font-weight="bold">Diagrama de sequência — Login</text>
+
+  <!-- Lifelines headers -->
+  <text x="120" y="500" class="label">Mobile App</text>
+  <line x1="160" y1="510" x2="160" y2="980" class="lifeline"/>
+
+  <text x="420" y="500" class="label">API (Express)</text>
+  <line x1="460" y1="510" x2="460" y2="980" class="lifeline"/>
+
+  <text x="720" y="500" class="label">SQLite DB</text>
+  <line x1="760" y1="510" x2="760" y2="980" class="lifeline"/>
+
+  <!-- Messages -->
+  <!-- App -> API: POST /login -->
+  <path d="M160 560 L460 560" class="arrow"/>
+  <text x="310" y="548" class="label" text-anchor="middle">POST /login { email, senha }</text>
+
+  <!-- API -> DB: SELECT -->
+  <path d="M460 620 L760 620" class="arrow"/>
+  <text x="610" y="608" class="label" text-anchor="middle">SELECT * FROM usuarios WHERE email = ? AND senha = ?</text>
+
+  <!-- DB -> API: user row -->
+  <path d="M760 680 L460 680" class="arrow"/>
+  <text x="610" y="700" class="label" text-anchor="middle">user row OR null</text>
+
+  <!-- API -> App: success with token -->
+  <path d="M460 740 L160 740" class="arrow"/>
+  <text x="310" y="728" class="label" text-anchor="middle">200 { token: Math.random(), nome, email, id }</text>
+
+  <!-- App local storage -->
+  <rect x="120" y="780" width="320" height="60" class="box"/>
+  <text x="140" y="810" class="note">AsyncStorage: 'usuario' = { nome, email, id } (token NÃO salvo)</text>
+
+  <!-- Failure branch -->
+  <path d="M460 840 L160 840" class="arrow"/>
+  <text x="310" y="828" class="label" text-anchor="middle">400/200 { erro: 'E-mail ou senha incorretos' }</text>
+
+  <!-- Sequence footer -->
+  <text x="40" y="1020" class="note">Riscos: senhas em texto, token fraco, ausência de verificação em endpoints subsequentes. Recomenda-se bcrypt + JWT + middleware de autenticação + armazenamento seguro no cliente.</text>
+
+  <!-- small legend -->
+  <rect x="620" y="1060" width="340" height="300" rx="8" fill="#fafafa" stroke="#e6e6e6"/>
+  <text x="640" y="1090" class="label">Próximos passos possíveis</text>
+  <text x="640" y="1118" class="note">• Implementar bcrypt em /cadastro e compare em /login</text>
+  <text x="640" y="1140" class="note">• Retornar JWT (jsonwebtoken) e validar via middleware</text>
+  <text x="640" y="1162" class="note">• Armazenar token em SecureStore/Keychain</text>
+  <text x="640" y="1184" class="note">• Usar Authorization: Bearer &lt;token&gt; nas requisições</text>
+  <text x="640" y="1210" class="note">• Em produção: HTTPS e expiração/refresh tokens</text>
+</svg>
